@@ -1,95 +1,115 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Organism : MonoBehaviour {
     public float Energy = 100f;
-    public float Efficency = .25f;
-    public int[] FoodSources = null; 
-    public int[] Wastes = null;
-    public int MaturityAge;
-    public int RefractoryPeriod;
-    public int ReproductionPeriod;
-
-    public float Strength;
-    public float Defense;
-    public float Health;
+    public float EatEfficency = .25f;
+    public float AttackEffieceny = .50f; //how good of a fighter this is
+    public float Strength = 1.25f; //scales up the raw dmg done
+    public float Defense = .25f; //scales down the damage done
+    public float Aggresion = 5f; //how aggressive an organism is 
+    public float TimeToLive = 60f; //default 1 minute
+    
+    public const float BASE_DAMAGE = 20f;
 
     public bool food;
 
-
-
+    public Vector3 StartPoint; 
+    public int newtarget;
+    private NavMeshAgent nav;
+    private Vector3 target;
+    public float Speed;
+    private float timer = 0f;
 
     public bool EnableDebug = false;
-    public float ScalingProbability;
-    public string Name;
+    
+
     public GameObject World;
-    private Rigidbody rb;
     // Use this for initialization
 
     void Start () {
-        rb = GetComponent<Rigidbody>();
-        gameObject.name = Name;
-        food = false;
+        nav = gameObject.GetComponent<NavMeshAgent>();
+        target = new Vector3(StartPoint.x, StartPoint.y, StartPoint.z);
 	}
-
-    // Update is called once per frame
     void FixedUpdate()
     {
-        if (!food)
-            Move();
+        timer += Time.deltaTime;
+        nav.speed = Speed;
+        if(timer >= newtarget)
+        {
+            getNewTarget();
+            //Reproduce();
+            timer = 0;
+        }
+        
     }
 
-    public void Move()
+    void OnTriggerEnter(Collider other)
     {
-        float x, y, z;
-        if (Random.Range(0f, 100f) < ScalingProbability)
+        if (other.gameObject.GetComponent<Organism>() == null)
+            return;
+        float attackProb = Aggresion / 100 + AttackEffieceny;
+        if(EnableDebug)
+            print(name + " Attack Prob is " + attackProb);
+        float rand = Random.Range(0, 1);
+        
+        if (rand < attackProb)
         {
-            ScalingProbability = 5f;
-            if (Random.Range(0, 2) == 0)
-                x = Random.Range(0f, 180f);
-            else
-                x = 0;
-            if (Random.Range(0, 2) == 0)
-                y = Random.Range(0f, 180f);
-            else
-                y = 0;
-            if (Random.Range(0, 2) == 0)
-                z = Random.Range(0f, 180f);
-            else
-                z = 0;
-            transform.Rotate(0, y, 0);
+            //Attack Once per collision, so far there is no chasing*
+            Organism rivalOrganism = other.gameObject.GetComponent<Organism>();
+            rivalOrganism.Energy -= (BASE_DAMAGE * Strength * rivalOrganism.Defense);
+            if (EnableDebug)
+            {
+                print(name + " Dmg done is " + (BASE_DAMAGE * Strength * rivalOrganism.Defense));
+                print(name + "Attacked, Energy is " + Energy);
+            }
 
         }
         else
         {
-            // if the snitch hits a wall then its velocity should end up at 0, this ensures that if that happens, the snitch
-            // will react and turn around instead of sitting there waiting for a random rotation away from the wall
-            if (rb.velocity.magnitude > 0)
-            {
-                ScalingProbability += (4f / 4f) * (1 / rb.velocity.magnitude);
-            }
-            else
-            {
-                ScalingProbability = 100f;
-            }
+            //flee
+            //turn arounnd 180
+            timer = -newtarget;
+            target = new Vector3(-target.x, target.y, -target.z);
+            if(EnableDebug)
+                print(name + "Fled, Energy is " + Energy);
         }
-        
-        rb.AddForce(transform.forward * 5, ForceMode.Acceleration);
-        Energy -= 0.25f;
+    }
+
+    private void getNewTarget()
+    {
+        float x = transform.position.x;
+        float z = transform.position.z;
+
+        float xPos = x + Random.Range(-20, 20);
+        float zPos = z + Random.Range(-20, 20);
+        target = new Vector3(xPos, transform.position.y, zPos);
         if (EnableDebug)
         {
-            Debug.Log("Energy remaining ");
-            Debug.Log(Energy);
-            Debug.Log("-------------");
+            print("Target Destination");
+            print(target.ToString());
+            print("-------------");
         }
+            
+        nav.SetDestination(target);
     }
 
-
-    void OnCollisionEnter(Collision call)
+    private void Reproduce()
     {
-        
+        //for now an exact copy with no chance of mutations
+        Instantiate(gameObject);
     }
+
+    private void Attack()
+    {
+
+    }
+
+    
+    
+
 
     public void Look()
     {

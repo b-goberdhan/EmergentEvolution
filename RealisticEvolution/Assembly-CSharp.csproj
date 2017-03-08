@@ -47,7 +47,6 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\CustomTerrain.cs" />
-     <Compile Include="Assets\Food.cs" />
      <Compile Include="Assets\Organism.cs" />
      <Compile Include="Assets\World.cs" />
  <Reference Include="UnityEngine.Advertisements">
