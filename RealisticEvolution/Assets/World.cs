@@ -6,14 +6,18 @@ public class World : MonoBehaviour {
     public Organism org;
     // Use this for initialization
     void Start () {
+		Vector3 spawnLocation = Vector3.zero;
         Color speciesColor = new Color();
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
+			spawnLocation.x = org.transform.position.x;
             speciesColor.r = Random.Range(0.0f, 1.0f);
             speciesColor.g = Random.Range(0.0f, 1.0f);
             speciesColor.b = Random.Range(0.0f, 1.0f);
-            CreateSpecies(speciesColor, 2);
+			CreateSpecies(speciesColor, 2, spawnLocation);
+			spawnLocation.z += 2 * org.transform.localScale.z;
         }
+		Destroy(org.gameObject);
     }
 	
 	// Update is called once per frame
@@ -22,21 +26,23 @@ public class World : MonoBehaviour {
 	}
 
 
-    void CreateSpecies(Color color, int numberOfOrganisms)
+	void CreateSpecies(Color color, int numberOfOrganisms, Vector3 spawnLocation)
     {
         Organism orgs;
 
         Quaternion initialRotation = Quaternion.Euler(Vector3.zero);
-        Vector3 spawnLocation = Vector3.zero;
         float baseValue = 100.0f;
 
 
         for (int i = 0; i < numberOfOrganisms; i++)
         {
             orgs = Instantiate<Organism>(org, spawnLocation, initialRotation);
+			orgs.sex = i;
+
+			orgs.GetComponent<Renderer>().material.color = color;
 
             //orgs.MaturityAge = baseValue + Random.Range(-5.0f, 5.0f);
-            spawnLocation.x += org.transform.localScale.x;
+            spawnLocation.x += 2 * org.transform.localScale.x;
         }
     }
 }

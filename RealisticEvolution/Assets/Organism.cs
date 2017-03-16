@@ -5,13 +5,16 @@ using UnityEngine.AI;
 
 public class Organism : MonoBehaviour {
     public float Energy = 100f;
-    public float EatEfficency = .25f;
-    public float AttackEffieceny = .50f; //how good of a fighter this is
+	public float MaxEnergy = 100f;
+    public float EatEfficiency = .25f;
+    public float AttackEfficiency = .50f; //how good of a fighter this is
     public float Strength = 1.25f; //scales up the raw dmg done
     public float Defense = .25f; //scales down the damage done
-    public float Aggresion = 5f; //how aggressive an organism is 
+    public float Aggression = 5f; //how aggressive an organism is 
     public float TimeToLive = 60f; //default 1 minute
-    
+	public float Speed;
+
+
     public const float BASE_DAMAGE = 20f;
 
     public bool food;
@@ -20,8 +23,8 @@ public class Organism : MonoBehaviour {
     public int newtarget;
     private NavMeshAgent nav;
     private Vector3 target;
-    public float Speed;
     private float timer = 0f;
+	public int sex;
 
     public bool EnableDebug = false;
     
@@ -43,23 +46,28 @@ public class Organism : MonoBehaviour {
             //Reproduce();
             timer = 0;
         }
-        
+		if (Energy <= 0) {
+			Destroy (gameObject);
+		}
     }
 
     void OnTriggerEnter(Collider other)
     {
+
         if (other.gameObject.GetComponent<Organism>() == null)
             return;
-        float attackProb = Aggresion / 100 + AttackEffieceny;
+		Reproduce (other.GetComponent<Organism>());
+		float attackProb = Aggression / 100 + AttackEfficiency;
         if(EnableDebug)
             print(name + " Attack Prob is " + attackProb);
         float rand = Random.Range(0, 1);
-        
-        if (rand < attackProb)
+		Organism rivalOrganism = other.gameObject.GetComponent<Organism>();
+		bool same = SameSpecies(rivalOrganism);
+        if (rand < attackProb && !same)
         {
             //Attack Once per collision, so far there is no chasing*
-            Organism rivalOrganism = other.gameObject.GetComponent<Organism>();
-            rivalOrganism.Energy -= (BASE_DAMAGE * Strength * rivalOrganism.Defense);
+
+			rivalOrganism.Energy -= (BASE_DAMAGE * Strength * rivalOrganism.Defense);
             if (EnableDebug)
             {
                 print(name + " Dmg done is " + (BASE_DAMAGE * Strength * rivalOrganism.Defense));
@@ -96,15 +104,178 @@ public class Organism : MonoBehaviour {
         nav.SetDestination(target);
     }
 
-    private void Reproduce()
+	private bool SameSpecies(Organism orga){
+		Color other = orga.GetComponent<Renderer> ().material.color;
+		Color mine = this.GetComponent<Renderer> ().material.color;
+		float colorDiff = Mathf.Abs (other.r - mine.r);
+		colorDiff += Mathf.Abs (other.g - mine.g);
+		colorDiff += Mathf.Abs (other.b - mine.b);
+		if (colorDiff <= 0.2f) {
+			return true;
+		}
+		return false;
+	}
+
+
+	private void Reproduce(Organism lover)
     {
-        //for now an exact copy with no chance of mutations
-        Instantiate(gameObject);
-    }
+		if (Energy >= 20 && SameSpecies(lover)) {
+			if (sex == 1 && lover.sex == 0) {
+				Organism baby;
+				baby = Instantiate<Organism> (this);
+				Mutate (baby, this, lover);
+				baby.Energy = baby.MaxEnergy;
+				baby.sex = (Random.Range (0, 100) > 50 ? 1 : 0);
+			}
+			Energy -= 20;
+		}
+	}
+	/*
+	 * Attribute List
+	 * --------------
+	 *	Energy
+	 *	MaxEnergy
+     *	EatEfficency
+     *	AttackEffieceny
+     *	Strength
+     *	Defense
+     *	Aggresion 
+     *	TimeToLive
+	 *	Speed;
+	*/
+	private float mutationThreshold = 95;
+	private void Mutate(Organism baby, Organism mother, Organism father){
+		Color babyColor = Color.Lerp(mother.GetComponent<Renderer> ().material.color, father.GetComponent<Renderer> ().material.color, 0.5f);
+		baby.MaxEnergy = (mother.MaxEnergy + father.MaxEnergy) / 2;
+		baby.EatEfficiency = (mother.EatEfficiency + father.EatEfficiency) / 2;
+		baby.AttackEfficiency = (mother.AttackEfficiency + father.AttackEfficiency) / 2;
+		baby.Strength = (mother.Strength + father.Strength) / 2;
+		baby.Defense = (mother.Defense + father.Defense) / 2;
+		baby.Aggression = (mother.Aggression + father.Aggression) / 2;
+		baby.TimeToLive = (mother.TimeToLive + father.TimeToLive) / 2;
+		baby.Speed = (mother.Speed + father.Speed) / 2;
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.MaxEnergy += Random.Range(-baby.MaxEnergy/50, baby.MaxEnergy/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.EatEfficiency += Random.Range(-baby.EatEfficiency/50, baby.EatEfficiency/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.EatEfficiency += Random.Range(-baby.EatEfficiency/50, baby.EatEfficiency/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.AttackEfficiency += Random.Range(-baby.AttackEfficiency/50, baby.AttackEfficiency/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.Strength += Random.Range(-baby.Strength/50, baby.Strength/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.Defense += Random.Range(-baby.Defense/50, baby.Defense/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.Aggression += Random.Range(-baby.Aggression/50, baby.Aggression/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.TimeToLive += Random.Range(-baby.TimeToLive/50, baby.TimeToLive/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		if (Random.Range (0, 100) > mutationThreshold) {
+			baby.Speed += Random.Range(-baby.Speed/50, baby.Speed/50);
+			int colorRandom = Random.Range (0, 100);
+			if (colorRandom > 66){
+				babyColor.r += 0.005f;
+			}
+			else if (colorRandom > 33){
+				babyColor.g += 0.005f;
+			}
+			else{
+				babyColor.b += 0.005f;
+			}
+		}
+		baby.GetComponent<Renderer> ().material.color = babyColor;
+	}
 
     private void Attack()
     {
-
     }
 
     
