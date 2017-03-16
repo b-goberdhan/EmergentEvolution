@@ -17,7 +17,9 @@ public class World : MonoBehaviour {
 			CreateSpecies(speciesColor, 2, spawnLocation);
 			spawnLocation.z += 2 * org.transform.localScale.z;
         }
-		Destroy(org.gameObject);
+		org.GetComponent<Renderer> ().enabled = false;
+		org.GetComponent<BoxCollider> ().enabled = false;
+		//Destroy(org.gameObject);
     }
 	
 	// Update is called once per frame
@@ -40,9 +42,13 @@ public class World : MonoBehaviour {
 			orgs.sex = i;
 
 			orgs.GetComponent<Renderer>().material.color = color;
+			orgs.food = false;
 
             //orgs.MaturityAge = baseValue + Random.Range(-5.0f, 5.0f);
             spawnLocation.x += 2 * org.transform.localScale.x;
         }
     }
+	void spawnFood(){
+	
+	}
 }

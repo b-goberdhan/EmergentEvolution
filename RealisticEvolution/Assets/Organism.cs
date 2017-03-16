@@ -33,21 +33,25 @@ public class Organism : MonoBehaviour {
     // Use this for initialization
 
     void Start () {
-        nav = gameObject.GetComponent<NavMeshAgent>();
-        target = new Vector3(StartPoint.x, StartPoint.y, StartPoint.z);
+		if (!food){
+			nav = gameObject.GetComponent<NavMeshAgent>();
+			target = new Vector3(StartPoint.x, StartPoint.y, StartPoint.z);
+		}
 	}
     void FixedUpdate()
     {
-        timer += Time.deltaTime;
-        nav.speed = Speed;
-        if(timer >= newtarget)
-        {
-            getNewTarget();
-            //Reproduce();
-            timer = 0;
-        }
+		if (!food){
+			timer += Time.deltaTime;
+			nav.speed = Speed;
+			if(timer >= newtarget)
+			{
+				getNewTarget();
+				//Reproduce();
+				timer = 0;
+			}
+		}
 		if (Energy <= 0) {
-			Destroy (gameObject);
+			Die ();
 		}
     }
 
@@ -67,8 +71,15 @@ public class Organism : MonoBehaviour {
         {
             //Attack Once per collision, so far there is no chasing*
 
-			rivalOrganism.Energy -= (BASE_DAMAGE * Strength * rivalOrganism.Defense);
-            if (EnableDebug)
+			float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
+
+			rivalOrganism.Energy -= attackDamage;
+			if (rivalOrganism.Energy <= 0){
+				this.Energy += attackDamage * EatEfficiency;
+			}
+
+
+			if (EnableDebug)
             {
                 print(name + " Dmg done is " + (BASE_DAMAGE * Strength * rivalOrganism.Defense));
                 print(name + "Attacked, Energy is " + Energy);
@@ -119,12 +130,11 @@ public class Organism : MonoBehaviour {
 
 	private void Reproduce(Organism lover)
     {
-		if (Energy >= 20 && SameSpecies(lover)) {
+		if (Energy >= 40 && SameSpecies(lover)) {
 			if (sex == 1 && lover.sex == 0) {
-				Organism baby;
-				baby = Instantiate<Organism> (this);
+				Organism baby = Instantiate<Organism> (this);
 				Mutate (baby, this, lover);
-				baby.Energy = baby.MaxEnergy;
+				baby.Energy = (lover.Energy + this.Energy)/2;
 				baby.sex = (Random.Range (0, 100) > 50 ? 1 : 0);
 			}
 			Energy -= 20;
@@ -158,117 +168,117 @@ public class Organism : MonoBehaviour {
 			baby.MaxEnergy += Random.Range(-baby.MaxEnergy/50, baby.MaxEnergy/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.EatEfficiency += Random.Range(-baby.EatEfficiency/50, baby.EatEfficiency/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.EatEfficiency += Random.Range(-baby.EatEfficiency/50, baby.EatEfficiency/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.AttackEfficiency += Random.Range(-baby.AttackEfficiency/50, baby.AttackEfficiency/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.Strength += Random.Range(-baby.Strength/50, baby.Strength/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.Defense += Random.Range(-baby.Defense/50, baby.Defense/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.Aggression += Random.Range(-baby.Aggression/50, baby.Aggression/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.TimeToLive += Random.Range(-baby.TimeToLive/50, baby.TimeToLive/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		if (Random.Range (0, 100) > mutationThreshold) {
 			baby.Speed += Random.Range(-baby.Speed/50, baby.Speed/50);
 			int colorRandom = Random.Range (0, 100);
 			if (colorRandom > 66){
-				babyColor.r += 0.005f;
+				babyColor.r += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else if (colorRandom > 33){
-				babyColor.g += 0.005f;
+				babyColor.g += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 			else{
-				babyColor.b += 0.005f;
+				babyColor.b += (Random.Range(0, 100) > 50 ? 0.005f : -0.005f);
 			}
 		}
 		baby.GetComponent<Renderer> ().material.color = babyColor;
@@ -278,6 +288,9 @@ public class Organism : MonoBehaviour {
     {
     }
 
+	public void Die(){
+		Destroy (gameObject);
+	}
     
     
 
