@@ -13,6 +13,9 @@ public class World : MonoBehaviour {
 		Vector3 spawnLocation = Vector3.zero;
         Color speciesColor = new Color();
 		int numberOfSpecies = 10;
+		TextMesh texter = org.GetComponentInChildren<TextMesh>();
+		texter.font.material.color = Color.black;
+		texter.text = "";
 
 		spawnLocation.z = -org.transform.localScale.z * numberOfSpecies;
 
