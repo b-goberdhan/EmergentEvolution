@@ -27,7 +27,7 @@ public class World : MonoBehaviour {
         }
 		org.GetComponent<Renderer> ().enabled = false;
 		org.GetComponent<BoxCollider> ().enabled = false;
-		for (int i = 0; i < 15; i++){
+		for (int i = 0; i < 40; i++){
 			spawnFood ();	
 		}
 		//Destroy(org.gameObject);
@@ -65,8 +65,14 @@ public class World : MonoBehaviour {
 		Vector3 spawnLocation = new Vector3(0, 0.1f, 0);
 		float xz = Random.Range (0, 100);
 
-		float xOut = (xz > 50) ? 0 : (landX)/2  - (landX / 5);
-		float zOut = (xz > 50) ? (landZ)/2 - (landZ / 5) : 0;
+		float xOut = (landX)/2  - (landX / 5);
+		float zOut = (landZ)/2 - (landZ / 5);
+
+		if (xz > 50) {
+			xOut = 0;
+		} else {
+			zOut = 0;
+		}
 
 		spawnLocation.x = Random.Range (xOut, landX/2 - org.transform.localScale.x);
 		spawnLocation.x *= (Random.Range (0, 100) > 50 ? 1 : -1);

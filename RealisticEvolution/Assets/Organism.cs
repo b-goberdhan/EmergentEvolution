@@ -178,8 +178,12 @@ public class Organism : MonoBehaviour {
 		newPos.z = newPos.z + (2 * baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
 		if (newPos.x > (25 - this.transform.localScale.x))
 			newPos.x = 25 - this.transform.localScale.x;
+		if (newPos.x < (0 + this.transform.localScale.x))
+			newPos.x = 0 + this.transform.localScale.x;
 		if (newPos.z > (25 - this.transform.localScale.z))
 			newPos.z = 25 - this.transform.localScale.z;
+		if (newPos.z > (0 + this.transform.localScale.z))
+			newPos.z = 0 + this.transform.localScale.z;
 		baby.transform.position = newPos;
 		Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
 		scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
