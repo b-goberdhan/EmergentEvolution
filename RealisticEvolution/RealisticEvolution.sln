@@ -1,7 +1,7 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealisticEvolution", "Assembly-CSharp.csproj", "{0ACE80D1-82C6-7D2B-1242-BEF59B73DB12}"
+# Visual Studio 2008
+
+Project("{FFFA8D8F-79D9-2C78-8F02-5097FD1B9216}") = "RealisticEvolution", "Assembly-CSharp.csproj", "{0ACE80D1-82C6-7D2B-1242-BEF59B73DB12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
