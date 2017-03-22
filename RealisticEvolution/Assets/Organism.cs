@@ -18,6 +18,7 @@ public class Organism : MonoBehaviour {
     public const float BASE_DAMAGE = 20f;
 
     public bool food;
+	private bool decay;
 
     public Vector3 StartPoint; 
     public int newtarget;
@@ -26,10 +27,13 @@ public class Organism : MonoBehaviour {
     private float timer = 0f;
 	public int sex;
 
+	private bool attacking = false;
+	private Organism enemy = null;
+
     public bool EnableDebug = false;
     
 
-    public GameObject World;
+    //public GameObject World;
     // Use this for initialization
 
     void Start () {
@@ -37,17 +41,33 @@ public class Organism : MonoBehaviour {
 			nav = gameObject.GetComponent<NavMeshAgent>();
 			target = new Vector3(StartPoint.x, StartPoint.y, StartPoint.z);
 		}
+		decay = false;
 	}
     void FixedUpdate()
     {
-		if (!food){
+		Vector3 scale = new Vector3(this.transform.localScale.x, 0, this.transform.localScale.z);
+		scale.y = 0.2f + ((this.Energy / this.MaxEnergy) * 0.8f);
+		this.transform.localScale = scale;
+		scale = this.transform.position;
+		scale.y = 0.1f + this.transform.localScale.y / 2;
+		this.transform.position = scale;
+
+		if (decay){
+			Energy -= MaxEnergy / (TimeToLive * 100f);
+		}
+		else if (!food) {
 			timer += Time.deltaTime;
 			nav.speed = Speed;
-			if(timer >= newtarget)
-			{
-				getNewTarget();
+			if (timer >= newtarget) {
+				getNewTarget ();
 				//Reproduce();
 				timer = 0;
+			}
+		}
+		else if (food){
+			Energy += MaxEnergy / (TimeToLive * 100f);
+			if (Energy >= MaxEnergy) {
+				Reproduce ();
 			}
 		}
 		if (Energy <= 0) {
@@ -57,16 +77,30 @@ public class Organism : MonoBehaviour {
 
     void OnTriggerEnter(Collider other)
     {
+		if (food)
+			return;
 
         if (other.gameObject.GetComponent<Organism>() == null)
             return;
-		Reproduce (other.GetComponent<Organism>());
 		float attackProb = Aggression / 100 + AttackEfficiency;
         if(EnableDebug)
             print(name + " Attack Prob is " + attackProb);
         float rand = Random.Range(0, 1);
 		Organism rivalOrganism = other.gameObject.GetComponent<Organism>();
 		bool same = SameSpecies(rivalOrganism);
+
+		if (rivalOrganism.food && !same) {
+			float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
+			this.Energy += attackDamage * EatEfficiency;
+			rivalOrganism.Energy -= attackDamage;
+			return;
+		} else if (same){
+			if (!rivalOrganism.food) {
+				Reproduce (other.GetComponent<Organism>());
+			}
+			return;
+		}
+
         if (rand < attackProb && !same)
         {
             //Attack Once per collision, so far there is no chasing*
@@ -74,6 +108,15 @@ public class Organism : MonoBehaviour {
 			float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
 
 			rivalOrganism.Energy -= attackDamage;
+
+			if (Random.Range(0, 100) < 100 * (attackDamage / rivalOrganism.MaxEnergy)){
+				rivalOrganism.food = true;
+				if (!EnableDebug) {
+					print ("Enemy killed!");
+				}
+				rivalOrganism.decay = true;
+			}
+
 			if (rivalOrganism.Energy <= 0){
 				this.Energy += attackDamage * EatEfficiency;
 			}
@@ -127,6 +170,22 @@ public class Organism : MonoBehaviour {
 		return false;
 	}
 
+	private void Reproduce(){
+		Energy /= 2;
+		Organism baby = Instantiate<Organism> (this);
+		Vector3 newPos = new Vector3 (this.transform.position.x, this.transform.position.y, this.transform.position.z);
+		newPos.x = newPos.x + (2 * baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
+		newPos.z = newPos.z + (2 * baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
+		if (newPos.x > (25 - this.transform.localScale.x))
+			newPos.x = 25 - this.transform.localScale.x;
+		if (newPos.z > (25 - this.transform.localScale.z))
+			newPos.z = 25 - this.transform.localScale.z;
+		baby.transform.position = newPos;
+		Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
+		scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
+		baby.transform.localScale = scale;
+
+	}
 
 	private void Reproduce(Organism lover)
     {
@@ -136,6 +195,9 @@ public class Organism : MonoBehaviour {
 				Mutate (baby, this, lover);
 				baby.Energy = (lover.Energy + this.Energy)/2;
 				baby.sex = (Random.Range (0, 100) > 50 ? 1 : 0);
+				Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
+				scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
+				baby.transform.localScale = scale;
 			}
 			Energy -= 20;
 		}
@@ -292,6 +354,10 @@ public class Organism : MonoBehaviour {
 		Destroy (gameObject);
 	}
     
+	private void Eyes(){
+		
+	
+	}
     
 
 

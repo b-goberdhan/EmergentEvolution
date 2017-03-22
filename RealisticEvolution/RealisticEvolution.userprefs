@@ -1,9 +1,9 @@
-﻿<Properties StartupItem="Assembly-CSharp.csproj">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Organism.cs">
+﻿<Properties StartupItem="RealisticEvolution.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\World.cs">
     <Files>
-      <File FileName="Assets/World.cs" Line="45" Column="22" />
-      <File FileName="Assets/Organism.cs" Line="18" Column="42" />
+      <File FileName="Assets\World.cs" Line="80" Column="1" />
+      <File FileName="Assets\Organism.cs" Line="142" Column="30" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
