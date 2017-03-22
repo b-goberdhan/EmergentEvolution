@@ -12,10 +12,24 @@ public class Organism : MonoBehaviour
     public float Strength = 1.25f; //scales up the raw dmg done
     public float Defense = .25f; //scales down the damage done
     public float Aggression = 5f; //how aggressive an organism is 
-    public float TimeToLive = 60f; //default 1 minute
+    public float TimeToLive = 30f; //default 1 minute
     public float Speed;
     public bool CanLook;
 
+	public int bitmask;
+
+	public Organism OrganismTarget;
+
+	public float AttackSpeed;
+
+	private float LastAttack;
+	private bool AttackReady;
+	private bool Attacked;
+
+	public float MaturityAge = 10f;
+
+	public float Age{ get; private set;}
+	private float Born;
 
 
     public const float BASE_DAMAGE = 20f;
@@ -46,10 +60,22 @@ public class Organism : MonoBehaviour
             nav = gameObject.GetComponent<NavMeshAgent>();
             target = new Vector3(StartPoint.x, StartPoint.y, StartPoint.z);
         }
+		LastAttack = Time.time;
+		Born = Time.time;
+		Age = Time.time - Born;
         decay = false;
     }
     void FixedUpdate()
     {
+		AttackReady = ((Time.time - LastAttack) > AttackSpeed);
+		Attacked = false;
+		Age = Time.time - Born;
+		//print (Age);
+		if (Age >= TimeToLive){
+			food = true;
+			decay = true;
+		}
+
         Vector3 scale = new Vector3(this.transform.localScale.x, 0, this.transform.localScale.z);
         scale.y = 0.2f + ((this.Energy / this.MaxEnergy) * 0.8f);
         this.transform.localScale = scale;
@@ -65,16 +91,18 @@ public class Organism : MonoBehaviour
         {
             timer += Time.deltaTime;
             nav.speed = Speed;
-            if (timer >= newtarget)
-            {
-                getNewTarget();
-                //Reproduce();
-                timer = 0;
-            }
+			if (timer >= newtarget && OrganismTarget == null) {
+				getNewTarget ();
+				//Reproduce();
+				timer = 0;
+			} else if(OrganismTarget != null) {
+				nav.SetDestination(OrganismTarget.transform.position);
+			}
+			Energy -= MaxEnergy / (TimeToLive * 100f);
         }
         else if (food)
         {
-            Energy += MaxEnergy / (TimeToLive * 100f);
+            Energy += MaxEnergy / (TimeToLive * 50f);
             if (Energy >= MaxEnergy)
             {
                 Reproduce();
@@ -86,7 +114,7 @@ public class Organism : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    void OnTriggerStay(Collider other)
     {
         if (food)
             return;
@@ -100,24 +128,30 @@ public class Organism : MonoBehaviour
         Organism rivalOrganism = other.gameObject.GetComponent<Organism>();
         bool same = SameSpecies(rivalOrganism);
 
-        if (rivalOrganism.food && !same)
+        if (!Attacked && AttackReady && rivalOrganism.food && !same)
         {
             float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
             this.Energy += attackDamage * EatEfficiency;
             rivalOrganism.Energy -= attackDamage;
+			LastAttack = Time.time;
+			Attacked = true;
+			if (Energy / MaxEnergy > 0.6)
+				OrganismTarget = null;
             return;
         }
         else if (same)
         {
             if (!rivalOrganism.food)
             {
+				OrganismTarget = null;
                 Reproduce(other.GetComponent<Organism>());
             }
             return;
         }
 
-        if (rand < attackProb && !same)
+		if (!Attacked && AttackReady && (rand < attackProb && !same))
         {
+			OrganismTarget = null;
             //Attack Once per collision, so far there is no chasing*
 
             float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
@@ -138,6 +172,8 @@ public class Organism : MonoBehaviour
             {
                 this.Energy += attackDamage * EatEfficiency;
             }
+			LastAttack = Time.time;
+			Attacked = true;
 
 
             if (EnableDebug)
@@ -160,13 +196,23 @@ public class Organism : MonoBehaviour
 
     private void getNewTarget()
     {
-        float[] objectSeen = Look();
-        if (objectSeen != null && CanLook)
+		float rander = Random.Range (0, 100);
+		float findTarget = Energy/MaxEnergy;
+		bitmask = 64;
+		bitmask = (rander > ((Energy/MaxEnergy) * 100)) ? 1 : bitmask;
+		rander = Random.Range (0, 100);
+		//max - energy < 20
+		bitmask = ((Random.Range(0, 100) > 30) && (Age >= MaturityAge)) ? 2 : bitmask;
+		bitmask = ((MaxEnergy - Energy < 20) && (Age >= MaturityAge)) ? 2 : bitmask;
+
+		float[] objectSeen = Look(bitmask);
+		if (objectSeen != null && CanLook)
         {
             target = new Vector3(objectSeen[0], objectSeen[1], objectSeen[2]);
         }
         else
         {
+			OrganismTarget = null;
             float x = transform.position.x;
             float z = transform.position.z;
 
@@ -231,7 +277,7 @@ public class Organism : MonoBehaviour
         else if (newPos.z < (-25 + this.transform.localScale.z))
             newPos.z = -25 + this.transform.localScale.z;
         baby.transform.position = newPos;
-        print("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
+        //print("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
         Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
         scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
         baby.transform.localScale = scale;
@@ -242,6 +288,8 @@ public class Organism : MonoBehaviour
     {
         if (lover.food)
             return;
+		if ((Age < MaturityAge) || (lover.Age < lover.MaturityAge))
+			return;
         if (Energy >= 40 && SameSpecies(lover))
         {
             if (sex == 1 && lover.sex == 0)
@@ -253,9 +301,19 @@ public class Organism : MonoBehaviour
                 Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
                 scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
                 baby.transform.localScale = scale;
-                baby.name = this.name;
+
+				TextMesh texter = baby.GetComponentInChildren<TextMesh>();
+				texter.font.material.color = Color.black;
+				texter.text = "baby";
+				texter = this.GetComponentInChildren<TextMesh>();
+				texter.font.material.color = Color.black;
+				texter.text = "MATED";
+				texter = lover.GetComponentInChildren<TextMesh>();
+				texter.font.material.color = Color.black;
+				texter.text = "MATED";
+				Energy -= 20;
+				//baby.name = this.name;
             }
-            Energy -= 20;
         }
     }
     /*
@@ -454,21 +512,39 @@ public class Organism : MonoBehaviour
 
 
 
-    public float[] Look()
+	public float[] Look(int bitmask)
     {
-        Collider[] collisons = Physics.OverlapSphere(transform.position, 4.5f);
+		//000 | all
+		//001 | food
+		//010 | mate
+		//100 | same
+
+		if (bitmask == 64)
+			return null;
+
+        Collider[] collisons = Physics.OverlapSphere(transform.position, 20f);
         foreach (Collider item in collisons)
         {
             if (item.transform.position != transform.position && item.GetComponent<Organism>() != null)
             {
+				//print (bitmask);
                 //see if what we collided was either food or an organimse
                 Organism collItem = item.GetComponent<Organism>();
-                Vector3 direction = Vector3.Normalize(item.transform.position - this.transform.position);
+				if (((bitmask & 1) == 0) && collItem.food) {
+					continue;
+				}
+				if (((bitmask & 2) == 0) && SameSpecies(collItem)){
+					continue;
+				}
+				//print ("Bits: " + (bitmask & 1) + " " + (bitmask & 2));
+
+				Vector3 direction = Vector3.Normalize(item.transform.position - this.transform.position);
                 float dot = Vector3.Dot(direction, this.transform.forward);
                 if (dot < Mathf.Cos(Mathf.PI / 4))
                 {
                     //set nav mesh to follow
                     float[] coords = { collItem.transform.position.x, collItem.transform.position.y, collItem.transform.position.z };
+					OrganismTarget = collItem;
                     return coords;
                 }
             }

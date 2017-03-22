@@ -7,12 +7,14 @@ public class World : MonoBehaviour {
     public Organism org;
 	public float landX;
 	public float landZ;
+	public int numberOfSpecies = 2;
+	public int numberOfOrganisms = 2;
+	public float bladeRespawn;
 
     // Use this for initialization
     void Start () {
 		Vector3 spawnLocation = Vector3.zero;
         Color speciesColor = new Color();
-		int numberOfSpecies = 10;
 		TextMesh texter = org.GetComponentInChildren<TextMesh>();
 		texter.font.material.color = Color.black;
 		texter.text = "";
@@ -25,7 +27,7 @@ public class World : MonoBehaviour {
             speciesColor.r = Random.Range(0.0f, 1.0f);
             speciesColor.g = Random.Range(0.0f, 1.0f);
             speciesColor.b = Random.Range(0.0f, 1.0f);
-			CreateSpecies(speciesColor, 4, spawnLocation);
+			CreateSpecies(speciesColor, numberOfOrganisms, spawnLocation);
 			spawnLocation.z += 2 * org.transform.localScale.z;
         }
 		org.GetComponent<Renderer> ().enabled = false;
@@ -97,8 +99,8 @@ public class World : MonoBehaviour {
 		Destroy(food.GetComponent<NavMeshAgent> ());
 		food.transform.position = spawnLocation;
 		food.food = true;
-		food.MaxEnergy = 50f;
-		food.Energy = food.MaxEnergy / 4;
+		food.MaxEnergy = 150f;
+		food.Energy = food.MaxEnergy * 0.75f;
 		food.GetComponent<Renderer> ().enabled = true;
 		food.GetComponent<BoxCollider> ().enabled = true;
 		food.GetComponent<Renderer> ().material.color = Color.green;
