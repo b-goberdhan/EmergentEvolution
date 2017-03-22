@@ -182,7 +182,7 @@ public class Organism : MonoBehaviour {
 			newPos.x = 0 + this.transform.localScale.x;
 		if (newPos.z > (25 - this.transform.localScale.z))
 			newPos.z = 25 - this.transform.localScale.z;
-		if (newPos.z > (0 + this.transform.localScale.z))
+		if (newPos.z < (0 + this.transform.localScale.z))
 			newPos.z = 0 + this.transform.localScale.z;
 		baby.transform.position = newPos;
 		Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
