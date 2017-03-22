@@ -176,6 +176,16 @@ public class Organism : MonoBehaviour {
 		Vector3 newPos = new Vector3 (this.transform.position.x, this.transform.position.y, this.transform.position.z);
 		newPos.x = newPos.x + (2 * baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
 		newPos.z = newPos.z + (2 * baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
+		float rander = Random.Range (0, 100);
+
+		if (rander > 50) {
+			newPos.x = Random.Range(-(25 - baby.transform.localScale.x), (25 - baby.transform.localScale.x));
+		}
+		else {
+			newPos.z = Random.Range(-(25 - baby.transform.localScale.z), (25 - baby.transform.localScale.z));
+		}
+
+
 		if (newPos.x > (25 - this.transform.localScale.x))
 			newPos.x = 25 - this.transform.localScale.x;
 		if (newPos.x < (0 + this.transform.localScale.x))
