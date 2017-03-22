@@ -15,6 +15,8 @@ public class Organism : MonoBehaviour {
 	public float Speed;
 
 
+
+
     public const float BASE_DAMAGE = 20f;
 
     public bool food;
@@ -174,27 +176,31 @@ public class Organism : MonoBehaviour {
 		Energy /= 2;
 		Organism baby = Instantiate<Organism> (this);
 		Vector3 newPos = new Vector3 (this.transform.position.x, this.transform.position.y, this.transform.position.z);
-		newPos.x = newPos.x + (2 * baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
-		newPos.z = newPos.z + (2 * baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
+		newPos.x += (baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
+		newPos.z += (baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
 		float rander = Random.Range (0, 100);
 
-		if (rander > 50) {
-			newPos.x = Random.Range(-(25 - baby.transform.localScale.x), (25 - baby.transform.localScale.x));
-		}
-		else {
-			newPos.z = Random.Range(-(25 - baby.transform.localScale.z), (25 - baby.transform.localScale.z));
+		if (rander > 50){
+			rander = Random.Range (0, 100);
+			if (rander > 50) {
+				newPos.x = this.transform.position.x + this.transform.localScale.x;
+			}
+			else {
+				newPos.z = this.transform.position.z + this.transform.localScale.z;
+			}
 		}
 
 
 		if (newPos.x > (25 - this.transform.localScale.x))
 			newPos.x = 25 - this.transform.localScale.x;
-		if (newPos.x < (0 + this.transform.localScale.x))
-			newPos.x = 0 + this.transform.localScale.x;
+		else if (newPos.x < (-25 + this.transform.localScale.x))
+			newPos.x = -25 + this.transform.localScale.x;
 		if (newPos.z > (25 - this.transform.localScale.z))
 			newPos.z = 25 - this.transform.localScale.z;
-		if (newPos.z < (0 + this.transform.localScale.z))
-			newPos.z = 0 + this.transform.localScale.z;
+		else if (newPos.z < (-25 + this.transform.localScale.z))
+			newPos.z = -25 + this.transform.localScale.z;
 		baby.transform.position = newPos;
+		print ("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
 		Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
 		scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
 		baby.transform.localScale = scale;
@@ -203,6 +209,8 @@ public class Organism : MonoBehaviour {
 
 	private void Reproduce(Organism lover)
     {
+		if (lover.food)
+			return;
 		if (Energy >= 40 && SameSpecies(lover)) {
 			if (sex == 1 && lover.sex == 0) {
 				Organism baby = Instantiate<Organism> (this);
@@ -212,6 +220,7 @@ public class Organism : MonoBehaviour {
 				Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
 				scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
 				baby.transform.localScale = scale;
+				baby.name = this.name;
 			}
 			Energy -= 20;
 		}

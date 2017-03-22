@@ -30,7 +30,7 @@ public class World : MonoBehaviour {
 		for (int i = 0; i < 40; i++){
 			spawnFood ();	
 		}
-		//Destroy(org.gameObject);
+		Destroy(org.gameObject);
     }
 	
 	// Update is called once per frame
@@ -47,6 +47,17 @@ public class World : MonoBehaviour {
         float baseValue = 100.0f;
 
 		spawnLocation.x = -org.transform.localScale.x * numberOfOrganisms;
+		string name;
+		float rander = Random.Range (0, 100);
+		if (rander < 25)
+			name = "Inky";
+		else if (rander < 50)
+			name = "Blinky";
+		else if (rander < 75)
+			name = "Pinky";
+		else
+			name = "Clyde";
+
 
         for (int i = 0; i < numberOfOrganisms; i++)
         {
@@ -58,6 +69,7 @@ public class World : MonoBehaviour {
 
             //orgs.MaturityAge = baseValue + Random.Range(-5.0f, 5.0f);
             spawnLocation.x += 2 * org.transform.localScale.x;
+			orgs.name = name;
         }
     }
 	void spawnFood(){
@@ -82,6 +94,7 @@ public class World : MonoBehaviour {
 		Destroy(food.GetComponent<NavMeshAgent> ());
 		food.transform.position = spawnLocation;
 		food.food = true;
+		food.MaxEnergy = 50f;
 		food.Energy = food.MaxEnergy / 4;
 		food.GetComponent<Renderer> ().enabled = true;
 		food.GetComponent<BoxCollider> ().enabled = true;
