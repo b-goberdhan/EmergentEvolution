@@ -103,9 +103,43 @@ public class Organism : MonoBehaviour
         else if (food)
         {
             Energy += MaxEnergy / (TimeToLive * 50f);
-            if (Energy >= MaxEnergy)
+			if (Energy >= (MaxEnergy - (MaxEnergy * 0.5f)) && Energy <= (MaxEnergy + (MaxEnergy * 0.5f)))
             {
-                Reproduce();
+				Vector3 spawnLocation = this.transform.position;
+				bool repro = true;
+
+				int bits = 2^8 - 1;
+
+				Collider[] colliders = Physics.OverlapSphere (spawnLocation, this.transform.localScale.x + this.transform.localScale.x/4);
+				foreach (Collider col in colliders){
+					Organism orgs = col.GetComponent<Organism> ();
+					if (orgs != null) {
+						if (orgs != this) {
+							repro = false;
+							spawnLocation = orgs.transform.position;
+							if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
+								bits -= 2 ^ 7;
+							else if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == this.transform.position.z)
+								bits -= 2 ^ 6;
+							else if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
+								bits -= 2 ^ 5;
+							else if (spawnLocation.x == this.transform.position.x && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
+								bits -= 2 ^ 4;
+							else if (spawnLocation.x == (this.transform.position.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
+								bits -= 2 ^ 3;
+							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
+								bits -= 2 ^ 2;
+							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z))
+								bits -= 2;
+							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
+								bits -= 1;
+						}
+					}
+						
+				}
+
+				if (repro)
+					Reproduce(bits);
             }
         }
         if (Energy <= 0)
@@ -245,7 +279,7 @@ public class Organism : MonoBehaviour
         return false;
     }
 
-    private void Reproduce()
+	private void Reproduce(int bits)
     {
         Energy /= 2;
         Organism baby = Instantiate<Organism>(this);
@@ -253,6 +287,8 @@ public class Organism : MonoBehaviour
         newPos.x += (baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
         newPos.z += (baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
         float rander = Random.Range(0, 100);
+
+
 
         if (rander > 50)
         {
@@ -268,14 +304,14 @@ public class Organism : MonoBehaviour
         }
 
 
-        if (newPos.x > (25 - this.transform.localScale.x))
-            newPos.x = 25 - this.transform.localScale.x;
-        else if (newPos.x < (-25 + this.transform.localScale.x))
-            newPos.x = -25 + this.transform.localScale.x;
-        if (newPos.z > (25 - this.transform.localScale.z))
-            newPos.z = 25 - this.transform.localScale.z;
-        else if (newPos.z < (-25 + this.transform.localScale.z))
-            newPos.z = -25 + this.transform.localScale.z;
+        if (newPos.x > (100 - this.transform.localScale.x))
+            newPos.x = 100 - this.transform.localScale.x;
+        else if (newPos.x < (-100 + this.transform.localScale.x))
+            newPos.x = -100 + this.transform.localScale.x;
+        if (newPos.z > (100 - this.transform.localScale.z))
+            newPos.z = 100 - this.transform.localScale.z;
+        else if (newPos.z < (-100 + this.transform.localScale.z))
+            newPos.z = -100 + this.transform.localScale.z;
         baby.transform.position = newPos;
         //print("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
         Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);

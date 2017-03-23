@@ -32,7 +32,7 @@ public class World : MonoBehaviour {
         }
 		org.GetComponent<Renderer> ().enabled = false;
 		org.GetComponent<BoxCollider> ().enabled = false;
-		for (int i = 0; i < 40; i++){
+		for (int i = 0; i < 160; i++){
 			spawnFood ();	
 		}
 		Destroy(org.gameObject);
@@ -95,6 +95,22 @@ public class World : MonoBehaviour {
 		spawnLocation.x *= (Random.Range (0, 100) > 50 ? 1 : -1);
 		spawnLocation.z = Random.Range (zOut, landZ/2 - org.transform.localScale.x);
 		spawnLocation.z *= (Random.Range (0, 100) > 50 ? 1 : -1);
+
+		int rem = (int) (spawnLocation.x / (org.transform.transform.localScale.x));
+
+		spawnLocation.x = org.transform.localScale.x * rem;
+		rem = (int) (spawnLocation.z / (org.transform.transform.localScale.z));
+		spawnLocation.z = org.transform.localScale.z * rem;
+
+		Collider[] colliders = Physics.OverlapSphere (spawnLocation, 0.25f);
+		foreach (Collider col in colliders){
+			if (col.GetComponent<Organism> () != null)
+				return;
+		}
+			
+
+
+
 		Organism food = Instantiate<Organism> (org, spawnLocation, initialRotation);
 		Destroy(food.GetComponent<NavMeshAgent> ());
 		food.transform.position = spawnLocation;
