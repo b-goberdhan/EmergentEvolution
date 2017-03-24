@@ -32,10 +32,11 @@ public class World : MonoBehaviour {
         }
 		org.GetComponent<Renderer> ().enabled = false;
 		org.GetComponent<BoxCollider> ().enabled = false;
+		org.enabled = false;;
+
 		for (int i = 0; i < 160; i++){
 			spawnFood ();	
 		}
-		Destroy(org.gameObject);
     }
 	
 	// Update is called once per frame
@@ -77,6 +78,40 @@ public class World : MonoBehaviour {
 			orgs.name = name;
         }
     }
+
+	public void spawnFood(float x, float z){
+		Quaternion initialRotation = Quaternion.Euler(Vector3.zero);
+		Vector3 spawnLocation = new Vector3(x, 0.1f, z);
+		int rem = (int) (spawnLocation.x / (org.transform.localScale.x));
+
+		spawnLocation.x = org.transform.localScale.x * rem;
+		rem = (int) (spawnLocation.z / (org.transform.localScale.z));
+		spawnLocation.z = org.transform.localScale.z * rem;
+
+		Collider[] colliders = Physics.OverlapSphere (spawnLocation, 0.25f);
+		foreach (Collider col in colliders){
+			if (col.GetComponent<Organism> () != null)
+				return;
+		}
+
+		Organism food = Instantiate<Organism> (org, spawnLocation, initialRotation);
+		food.enabled = true;
+		Destroy(food.GetComponent<NavMeshAgent> ());
+		food.transform.position = spawnLocation;
+		food.food = true;
+		food.MaxEnergy = 150f;
+		food.Energy = food.MaxEnergy * 0.75f;
+		food.GetComponent<Renderer> ().enabled = true;
+		food.GetComponent<BoxCollider> ().enabled = true;
+		food.GetComponent<Renderer> ().material.color = Color.green;
+		food.name = "Food";
+		Vector3 scale = new Vector3();
+		scale = food.transform.position;
+		scale.y = 0.1f + food.transform.localScale.y / 2;
+		food.transform.position = scale;
+
+	}
+
 	void spawnFood(){
 		Quaternion initialRotation = Quaternion.Euler(Vector3.zero);
 		Vector3 spawnLocation = new Vector3(0, 0.1f, 0);
@@ -95,12 +130,15 @@ public class World : MonoBehaviour {
 		spawnLocation.x *= (Random.Range (0, 100) > 50 ? 1 : -1);
 		spawnLocation.z = Random.Range (zOut, landZ/2 - org.transform.localScale.x);
 		spawnLocation.z *= (Random.Range (0, 100) > 50 ? 1 : -1);
-
+		/*
 		int rem = (int) (spawnLocation.x / (org.transform.transform.localScale.x));
 
 		spawnLocation.x = org.transform.localScale.x * rem;
 		rem = (int) (spawnLocation.z / (org.transform.transform.localScale.z));
 		spawnLocation.z = org.transform.localScale.z * rem;
+*/
+		spawnFood (spawnLocation.x, spawnLocation.z);
+		/*
 
 		Collider[] colliders = Physics.OverlapSphere (spawnLocation, 0.25f);
 		foreach (Collider col in colliders){
@@ -124,6 +162,6 @@ public class World : MonoBehaviour {
 		Vector3 scale = new Vector3();
 		scale = food.transform.position;
 		scale.y = 0.1f + food.transform.localScale.y / 2;
-		food.transform.position = scale;
+		food.transform.position = scale;*/
 	}
 }

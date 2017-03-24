@@ -49,6 +49,8 @@ public class Organism : MonoBehaviour
 
     public bool EnableDebug = false;
 
+	private float fertilizer;
+
 
     //public GameObject World;
     // Use this for initialization
@@ -64,6 +66,7 @@ public class Organism : MonoBehaviour
 		Born = Time.time;
 		Age = Time.time - Born;
         decay = false;
+		fertilizer = 0;
     }
     void FixedUpdate()
     {
@@ -85,8 +88,17 @@ public class Organism : MonoBehaviour
 
         if (decay)
         {
-            Energy -= MaxEnergy / (TimeToLive * 100f);
-        }
+			float sub = MaxEnergy / (TimeToLive * 100f); 
+			Energy -= sub;
+			fertilizer += sub;
+			if (fertilizer >= 20){
+				float x = transform.position.x;
+				float z = transform.position.z;
+				Die ();
+				World world = GameObject.Find("World").GetComponent<World>();
+				world.spawnFood (x, z);
+			}
+		}
         else if (!food)
         {
             timer += Time.deltaTime;
@@ -103,43 +115,63 @@ public class Organism : MonoBehaviour
         else if (food)
         {
             Energy += MaxEnergy / (TimeToLive * 50f);
-			if (Energy >= (MaxEnergy - (MaxEnergy * 0.5f)) && Energy <= (MaxEnergy + (MaxEnergy * 0.5f)))
+			if (Energy >= (MaxEnergy - (MaxEnergy * 0.05f)) && (Energy <= (MaxEnergy + (MaxEnergy * 0.05f))))
             {
 				Vector3 spawnLocation = this.transform.position;
 				bool repro = true;
 
-				int bits = 2^8 - 1;
+				int bits = (int)Mathf.Pow(2, 8) - 1;
+				float tX = this.transform.position.x;
+				float tZ = this.transform.position.z;
 
-				Collider[] colliders = Physics.OverlapSphere (spawnLocation, this.transform.localScale.x + this.transform.localScale.x/4);
+				Collider[] colliders = Physics.OverlapSphere (spawnLocation, (this.transform.localScale.x)/2 * Mathf.Sqrt(2) + 0.2f);
+				//Debug.Log ("Start: \n" + "--------------------------------------------------");
+			//	Debug.Log ("INITIAL BITS: " + bits);
+				string outp = "";
 				foreach (Collider col in colliders){
+					//Debug.Log (bits);
 					Organism orgs = col.GetComponent<Organism> ();
+					//if (orgs == this)
+					//	Debug.Log (orgs + "<---------------------------");
+					//Debug.Log (((orgs == this) ? orgs+"<---------------------------" : ""));
 					if (orgs != null) {
 						if (orgs != this) {
-							repro = false;
 							spawnLocation = orgs.transform.position;
-							if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
-								bits -= 2 ^ 7;
-							else if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == this.transform.position.z)
-								bits -= 2 ^ 6;
-							else if (spawnLocation.x == (this.transform.position.x - this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
-								bits -= 2 ^ 5;
-							else if (spawnLocation.x == this.transform.position.x && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
-								bits -= 2 ^ 4;
-							else if (spawnLocation.x == (this.transform.position.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
-								bits -= 2 ^ 3;
-							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z - this.transform.localScale.z))
-								bits -= 2 ^ 2;
-							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z))
-								bits -= 2;
-							else if (spawnLocation.x == (this.transform.position.x + this.transform.localScale.x) && spawnLocation.z == (this.transform.position.z + this.transform.localScale.z))
-								bits -= 1;
+							if (spawnLocation.x < tX && spawnLocation.z < tZ) {
+								bits -= ((bits & (1<<7)) != 0) ? (1<<7) : 0;
+								outp += 7;
+							} else if (spawnLocation.x < tX && spawnLocation.z == tZ) {
+								bits -= ((bits & (1<<6)) != 0) ? (1<<6) : 0;
+								outp += 6;
+							} else if (spawnLocation.x < tX && spawnLocation.z > tZ) {
+								bits -= ((bits & (1<<5)) != 0) ? (1<<5) : 0;
+								outp += 5;
+							} else if (spawnLocation.x == tX && spawnLocation.z < tZ) {
+								bits -= ((bits & (1<<4)) != 0) ? (1<<4) : 0;
+								outp += 4;
+							} else if (spawnLocation.x == tX && spawnLocation.z > tZ) {
+								bits -= ((bits & (1<<3)) != 0) ? (1<<3) : 0;
+								outp += 3;
+							} else if (spawnLocation.x > tX && spawnLocation.z < tZ) {
+								bits -= ((bits & (1<<2)) != 0) ? (1<<2) : 0;
+								outp += 2;
+							} else if (spawnLocation.x > tX && spawnLocation.z == tZ) {
+								bits -= ((bits & 2) != 0) ? 2 : 0;
+								outp += 1;
+							} else if (spawnLocation.x > tX && spawnLocation.z > tZ) {
+								bits -= ((bits & 1) != 0) ? 1 : 0;
+								outp += 0;
+							}
+							//Debug.Log ("Bitmask: " + bits + " Bits: " + outp + " This: " + tX + " " + tZ + " Other: " + spawnLocation.x + " " + spawnLocation.z);
 						}
 					}
-						
 				}
+				//Debug.Log ("End\n" + "--------------------------------------------------");
 
-				if (repro)
-					Reproduce(bits);
+				if (bits > 0) {
+					Reproduce (bits);
+				//	Debug.Log ("BABIES");
+				}
             }
         }
         if (Energy <= 0)
@@ -286,10 +318,64 @@ public class Organism : MonoBehaviour
         Vector3 newPos = new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
         newPos.x += (baby.transform.localScale.x) * (Random.Range(0, 100) > 50 ? 1 : -1);
         newPos.z += (baby.transform.localScale.z) * (Random.Range(0, 100) > 50 ? 1 : -1);
-        float rander = Random.Range(0, 100);
+		float rander;
+		int power;
+		int pos;
+		for (int i = 0; i < 8; i++){
+			power = (1<<i);
+
+			if ((bits & power) != 0) {
+				rander = Random.Range (0, 100);
+				if (rander > 50 && (bits - power > 0))
+					continue;
+
+
+				pos = power;
+				Vector3 currPos = this.transform.position;
+				float scaleX = this.transform.localScale.x;
+				float scaleZ = this.transform.localScale.z;
+				if (pos == (1<<7))
+					newPos = new Vector3 (currPos.x - scaleX, currPos.y, currPos.z - scaleZ);
+				else if (pos == (1<<6))
+					newPos = new Vector3 (currPos.x - scaleX, currPos.y, currPos.z);
+				else if (pos == (1<<5))
+					newPos = new Vector3 (currPos.x - scaleX, currPos.y, currPos.z + scaleZ);
+				else if (pos == (1<<4))
+					newPos = new Vector3 (currPos.x, currPos.y, currPos.z - scaleZ);
+				else if (pos == (1<<3))
+					newPos = new Vector3 (currPos.x, currPos.y, currPos.z + scaleZ);
+				else if (pos == (1<<2))
+					newPos = new Vector3 (currPos.x + scaleX, currPos.y, currPos.z - scaleZ);
+				else if (pos == 2)
+					newPos = new Vector3 (currPos.x + scaleX, currPos.y, currPos.z);
+				else if (pos == 1)
+					newPos = new Vector3 (currPos.x + scaleX, currPos.y, currPos.z + scaleZ);
+				if (newPos.x > (100 - this.transform.localScale.x))
+					newPos.x = 100 - this.transform.localScale.x;
+				else if (newPos.x < (-100 + this.transform.localScale.x))
+					newPos.x = -100 + this.transform.localScale.x;
+				if (newPos.z > (100 - this.transform.localScale.z))
+					newPos.z = 100 - this.transform.localScale.z;
+				else if (newPos.z < (-100 + this.transform.localScale.z))
+					newPos.z = -100 + this.transform.localScale.z;
+				baby.transform.position = newPos;
+				//print("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
+				Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
+				scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
+				baby.transform.localScale = scale;
+				//baby.name = "x: " + baby.transform.position.x + " z: " + baby.transform.position.z;
+				return;
+			}
+		}
 
 
 
+
+
+
+
+
+		/*
         if (rander > 50)
         {
             rander = Random.Range(0, 100);
@@ -317,6 +403,7 @@ public class Organism : MonoBehaviour
         Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
         scale.y = 0.2f + ((baby.Energy / baby.MaxEnergy) * 0.8f);
         baby.transform.localScale = scale;
+        */
 
     }
 
