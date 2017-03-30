@@ -16,7 +16,10 @@ public class Organism : MonoBehaviour
     public float Speed;
     public bool CanLook;
 
-	public int bitmask;
+	public SortedDictionary<Color, float> Predators{private get; set;}
+	public SortedDictionary<Color, float> Prey{private get; set;}
+
+	public int bitmask;			// here for debugging purposes, take out later
 
 	public Organism OrganismTarget;
 
@@ -88,7 +91,7 @@ public class Organism : MonoBehaviour
 
         if (decay)
         {
-			float sub = MaxEnergy / (TimeToLive * 100f); 
+			float sub = MaxEnergy / (TimeToLive * 100f);
 			Energy -= sub;
 			fertilizer += sub;
 			if (fertilizer >= 20){
@@ -217,7 +220,10 @@ public class Organism : MonoBehaviour
 
 		if (!Attacked && AttackReady && (rand < attackProb && !same))
         {
-			OrganismTarget = null;
+			if (rivalOrganism != OrganismTarget) {
+				OrganismTarget = null;
+			}
+
             //Attack Once per collision, so far there is no chasing*
 
             float attackDamage = (BASE_DAMAGE * Strength * rivalOrganism.Defense);
