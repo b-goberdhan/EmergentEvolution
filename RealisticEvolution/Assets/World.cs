@@ -19,16 +19,19 @@ public class World : MonoBehaviour {
 		texter.font.material.color = Color.black;
 		texter.text = "";
 
-		spawnLocation.z = -org.transform.localScale.z * numberOfSpecies;
+		//spawnLocation.z = -org.transform.localScale.z * numberOfSpecies;
 
 		for (int i = 0; i < numberOfSpecies; i++)
         {
-			spawnLocation.x = org.transform.position.x;
+			spawnLocation.z = Random.Range(0, landZ/2) * (Random.Range(0, 100) > 50 ? 1 : -1);
+			spawnLocation.x = Random.Range(0, landX/2) * (Random.Range(0, 100) > 50 ? 1 : -1);
+
+			//spawnLocation.x = org.transform.position.x;
             speciesColor.r = Random.Range(0.0f, 1.0f);
             speciesColor.g = Random.Range(0.0f, 1.0f);
             speciesColor.b = Random.Range(0.0f, 1.0f);
 			CreateSpecies(speciesColor, numberOfOrganisms, spawnLocation);
-			spawnLocation.z += 2 * org.transform.localScale.z;
+			//spawnLocation.z += 2 * org.transform.localScale.z;
         }
 		org.GetComponent<Renderer> ().enabled = false;
 		org.GetComponent<BoxCollider> ().enabled = false;
@@ -52,7 +55,7 @@ public class World : MonoBehaviour {
         Quaternion initialRotation = Quaternion.Euler(Vector3.zero);
         float baseValue = 100.0f;
 
-		spawnLocation.x = -org.transform.localScale.x * numberOfOrganisms;
+		//spawnLocation.x = -org.transform.localScale.x * numberOfOrganisms;
 		string name;
 		float rander = Random.Range (0, 100);
 		if (rander < 25)
@@ -74,7 +77,7 @@ public class World : MonoBehaviour {
 			orgs.food = false;
 
             //orgs.MaturityAge = baseValue + Random.Range(-5.0f, 5.0f);
-            spawnLocation.x += 2 * org.transform.localScale.x;
+            //spawnLocation.x += 2 * org.transform.localScale.x;
 			orgs.name = name;
         }
     }
@@ -109,6 +112,8 @@ public class World : MonoBehaviour {
 		scale = food.transform.position;
 		scale.y = 0.1f + food.transform.localScale.y / 2;
 		food.transform.position = scale;
+		food.gameObject.isStatic = true;
+		food.TimeToLive = 120f;
 
 	}
 

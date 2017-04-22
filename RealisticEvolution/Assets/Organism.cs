@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 
 public class Organism : MonoBehaviour
@@ -126,6 +127,11 @@ public class Organism : MonoBehaviour
 				int bits = (int)Mathf.Pow(2, 8) - 1;
 				float tX = this.transform.position.x;
 				float tZ = this.transform.position.z;
+
+				//Vector3 rayStart = new Vector3 (tranform.position.x, 0.2f, transform.position.z);
+
+
+
 
 				Collider[] colliders = Physics.OverlapSphere (spawnLocation, (this.transform.localScale.x)/2 * Mathf.Sqrt(2) + 0.2f);
 				//Debug.Log ("Start: \n" + "--------------------------------------------------");
@@ -356,14 +362,14 @@ public class Organism : MonoBehaviour
 					newPos = new Vector3 (currPos.x + scaleX, currPos.y, currPos.z);
 				else if (pos == 1)
 					newPos = new Vector3 (currPos.x + scaleX, currPos.y, currPos.z + scaleZ);
-				if (newPos.x > (100 - this.transform.localScale.x))
-					newPos.x = 100 - this.transform.localScale.x;
-				else if (newPos.x < (-100 + this.transform.localScale.x))
-					newPos.x = -100 + this.transform.localScale.x;
-				if (newPos.z > (100 - this.transform.localScale.z))
-					newPos.z = 100 - this.transform.localScale.z;
-				else if (newPos.z < (-100 + this.transform.localScale.z))
-					newPos.z = -100 + this.transform.localScale.z;
+				if (newPos.x > (75 - this.transform.localScale.x))
+					newPos.x = 75 - this.transform.localScale.x;
+				else if (newPos.x < (-75 + this.transform.localScale.x))
+					newPos.x = -75 + this.transform.localScale.x;
+				if (newPos.z > (75 - this.transform.localScale.z))
+					newPos.z = 75 - this.transform.localScale.z;
+				else if (newPos.z < (-75 + this.transform.localScale.z))
+					newPos.z = -75 + this.transform.localScale.z;
 				baby.transform.position = newPos;
 				//print("x: " + newPos.x + " z: " + newPos.z + " Parent coords-> x: " + this.transform.position.x + " z: " + this.transform.position.z);
 				Vector3 scale = new Vector3(baby.transform.localScale.x, 0, baby.transform.localScale.z);
@@ -441,7 +447,7 @@ public class Organism : MonoBehaviour
 				texter.font.material.color = Color.black;
 				texter.text = "MATED";
 				Energy -= 20;
-				//baby.name = this.name;
+				baby.name = this.name + "I";
             }
         }
     }
